@@ -15,7 +15,7 @@ class StartUp extends ConsumerWidget {
     final pages = [
       const Welcome(),
       const EnterPhone(),
-      OtpVerification(phoneNo: "9150977804"),
+      OtpVerification(),
       const ProfileSetup(),
     ];
 

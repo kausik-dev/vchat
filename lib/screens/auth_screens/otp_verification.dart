@@ -10,25 +10,19 @@ import 'package:vchat/styles/styles.dart';
 import 'package:vchat/widgets/custom_button.dart';
 
 class OtpVerification extends ConsumerWidget {
-  OtpVerification({Key? key, required this.phoneNo}) : super(key: key);
+  OtpVerification({Key? key}) : super(key: key);
 
-  final String phoneNo;
   final TextEditingController otpController = TextEditingController();
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-
     final customTStyle = Theme.of(context).textTheme.headline1!.copyWith();
-    final _authPro = ref.read(authProvider);
+    final authPro = ref.read(authProvider);
+    final phoneNo = authPro.phoneController.text.trim();
 
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        // leading: IconButton(
-        //   onPressed: () => Navigator.of(context).pop(),
-        //   icon: Icon(CupertinoIcons.back,
-        //       color: Theme.of(context).iconTheme.color),
-        // ),
         title: Text("OTP Verfication",
             style: Platform.isAndroid
                 ? Theme.of(context)
@@ -62,7 +56,8 @@ class OtpVerification extends ConsumerWidget {
             SizedBox(
               height: 3.h,
             ),
-            customOTPPinPut(customTStyle),
+            _CustomOTPInput(
+                otpController: otpController, textStyle: customTStyle),
             SizedBox(
               height: 3.h,
             ),
@@ -70,7 +65,7 @@ class OtpVerification extends ConsumerWidget {
                 callback: () {
                   final smsCode = otpController.text.trim();
                   if (smsCode.isNotEmpty && smsCode.length == 6) {
-                    _authPro.createPhoneAuthCredential(context, smsCode);
+                    authPro.createPhoneAuthCredential(context, smsCode);
                   } else {
                     _showSnack(context: context, message: "Enter a valid OTP");
                   }
@@ -95,7 +90,7 @@ class OtpVerification extends ConsumerWidget {
                   style: customTStyle.copyWith(
                       color: Colors.grey, fontSize: 11.sp),
                 ),
-                const OtpTimer()
+                const _OtpTimer()
               ],
             ),
           ],
@@ -104,11 +99,27 @@ class OtpVerification extends ConsumerWidget {
     );
   }
 
-  Widget customOTPPinPut(TextStyle textTheme) {
+  void _showSnack({required BuildContext context, required String message}) {
+    ScaffoldMessenger.of(context)
+        .showSnackBar(SnackBar(content: Text(message)));
+  }
+}
+
+class _CustomOTPInput extends StatelessWidget {
+  const _CustomOTPInput(
+      {Key? key, required this.otpController, required this.textStyle})
+      : super(key: key);
+
+  final TextEditingController otpController;
+  final TextStyle textStyle;
+
+  @override
+  Widget build(BuildContext context) {
     final BoxDecoration pinPutDecoration = BoxDecoration(
       borderRadius: BorderRadius.circular(10.0),
       border: Border.all(width: 2, color: VStyle.lightGrey),
     );
+
     return PinPut(
       eachFieldWidth: 4.w,
       eachFieldHeight: 6.h,
@@ -122,24 +133,19 @@ class OtpVerification extends ConsumerWidget {
       followingFieldDecoration: pinPutDecoration,
       pinAnimationType: PinAnimationType.scale,
       eachFieldMargin: EdgeInsets.symmetric(horizontal: 1.w),
-      textStyle: textTheme.copyWith(fontWeight: FontWeight.w700),
+      textStyle: textStyle.copyWith(fontWeight: FontWeight.w700),
     );
-  }
-
-  void _showSnack({required BuildContext context, required String message}) {
-    ScaffoldMessenger.of(context)
-        .showSnackBar(SnackBar(content: Text(message)));
   }
 }
 
-class OtpTimer extends StatefulWidget {
-  const OtpTimer({Key? key}) : super(key: key);
+class _OtpTimer extends StatefulWidget {
+  const _OtpTimer({Key? key}) : super(key: key);
 
   @override
   _OtpTimerState createState() => _OtpTimerState();
 }
 
-class _OtpTimerState extends State<OtpTimer> {
+class _OtpTimerState extends State<_OtpTimer> {
   int remainingTime = 40;
 
   @override
