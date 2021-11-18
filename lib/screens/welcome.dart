@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sizer/sizer.dart';
 import 'package:vchat/main.dart';
-import 'package:vchat/screens/auth_screens/enter_phone.dart';
 import 'package:vchat/widgets/custom_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -11,6 +10,7 @@ class Welcome extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final _authPro = ref.read(authProvider);
     return Scaffold(
       body: Stack(
         children: [
@@ -28,11 +28,7 @@ class Welcome extends ConsumerWidget {
               children: [
                 CustomButton(
                   callback: () {
-                    Navigator.of(context).push(
-                      MaterialPageRoute(
-                        builder: (_) => const EnterPhone(),
-                      ),
-                    );
+                    _authPro.moveToPage(1);
                   },
                   width: 80.w,
                   name: 'Get Started',

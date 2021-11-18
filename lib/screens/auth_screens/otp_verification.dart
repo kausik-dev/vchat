@@ -17,17 +17,18 @@ class OtpVerification extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+
     final customTStyle = Theme.of(context).textTheme.headline1!.copyWith();
     final _authPro = ref.read(authProvider);
 
     return Scaffold(
       appBar: AppBar(
         elevation: 0,
-        leading: IconButton(
-          onPressed: () => Navigator.of(context).pop(),
-          icon: Icon(CupertinoIcons.back,
-              color: Theme.of(context).iconTheme.color),
-        ),
+        // leading: IconButton(
+        //   onPressed: () => Navigator.of(context).pop(),
+        //   icon: Icon(CupertinoIcons.back,
+        //       color: Theme.of(context).iconTheme.color),
+        // ),
         title: Text("OTP Verfication",
             style: Platform.isAndroid
                 ? Theme.of(context)

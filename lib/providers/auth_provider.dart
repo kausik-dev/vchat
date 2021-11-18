@@ -1,9 +1,6 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
-import 'package:vchat/screens/auth_screens/otp_verification.dart';
-import 'package:vchat/screens/auth_screens/profile_setup.dart';
-import 'package:vchat/screens/home/home.dart';
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -18,6 +15,8 @@ class AuthProvider extends ChangeNotifier {
   bool _isEnterPhoneLoading = false;
   String _smsOTP = "";
   int? _forceResend;
+  int _curPage = 0;
+  String _chosenImg = "";
 
   // getters
   AuthCredential? get authCredential => _authCredential;
@@ -26,6 +25,21 @@ class AuthProvider extends ChangeNotifier {
   bool get isEnterPhoneLoading => _isEnterPhoneLoading;
   String get smsOTP => _smsOTP;
   int? get forceRend => _forceResend;
+  int get curPage => _curPage;
+  String get chosenImg => _chosenImg;
+
+
+  // set profile image
+  void setProfileImage(String image) {
+    _chosenImg = image;
+    notifyListeners();
+  }
+
+  // set curPage
+  void moveToPage(int index) {
+    _curPage = index;
+    notifyListeners();
+  }
 
   //  set EnterPhoneLoading
   void setEnterPhoneLoading(bool val) {
@@ -40,12 +54,6 @@ class AuthProvider extends ChangeNotifier {
       // trying to signIn with the phoneNumber
       await _auth.signInWithPhoneNumber(phoneNo);
       setEnterPhoneLoading(false);
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (_) => const Home(),
-        ),
-      );
     } catch (err) {
       await verifyPhoneNumber(context: context, number: phoneNo);
     }
@@ -56,17 +64,14 @@ class AuthProvider extends ChangeNotifier {
     await _auth.signInWithPhoneNumber(phoneNo);
   }
 
+  // method to createPhoneAuthCredential
   void createPhoneAuthCredential(BuildContext context, String smsCode) {
     final credential = PhoneAuthProvider.credential(
         verificationId: verficationId, smsCode: smsCode);
     _authCredential = credential;
     if (_authCredential != null) {
+      _curPage = 3;
       notifyListeners();
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => const ProfileSetup(),
-        ),
-      );
     } else {
       _showSnack(context, "Try Again");
     }
@@ -81,14 +86,8 @@ class AuthProvider extends ChangeNotifier {
       _verificationId = verId;
       _forceResend = forceCodeResend;
       _isEnterPhoneLoading = false;
+      _curPage = 2;
       notifyListeners();
-      Navigator.of(context).push(
-        MaterialPageRoute(
-          builder: (_) => OtpVerification(
-              phoneNo: number,
-            ),
-        ),
-      );
     };
 
     try {
@@ -102,13 +101,9 @@ class AuthProvider extends ChangeNotifier {
         verificationCompleted: (AuthCredential phoneAuthCredential) {
           _authCredential = phoneAuthCredential;
           _isEnterPhoneLoading = false;
+          _curPage = 3;
           notifyListeners();
           print("MOVING TO THE PROFILE SETUP PAGE==>");
-          Navigator.of(context).push(
-            MaterialPageRoute(
-              builder: (_) => const ProfileSetup(),
-            ),
-          );
         },
         verificationFailed: (FirebaseAuthException exception) {
           _showSnack(context, "Verification Failed");
@@ -120,6 +115,7 @@ class AuthProvider extends ChangeNotifier {
       _errorMsg = e.toString();
       _isEnterPhoneLoading = false;
       notifyListeners();
+      _showSnack(context, "Verification Failed");
     }
   }
 
