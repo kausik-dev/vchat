@@ -70,8 +70,8 @@ class ProfileSetup extends ConsumerWidget {
             SizedBox(height: 3.h),
             CustomButton(
                 callback: () async {
-                  if (authPro.usernameState == UsernameState.validated){
-                    authPro.sign
+                  if (authPro.usernameState == UsernameState.validated) {
+                    authPro.signUp(context);
                   }
                 },
                 width: 80.w,
