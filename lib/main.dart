@@ -12,7 +12,7 @@ import 'package:vchat/screens/home/home.dart';
 import 'package:vchat/screens/startup.dart';
 import 'package:vchat/styles/styles.dart';
 
-// Author : Kausik at 6.37pm Nov 18, 2021
+// Author : Kausik at 2.44am Nov 19, 2021
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
