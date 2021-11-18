@@ -1,34 +1,44 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
+import 'package:vchat/services/vchat_api.dart';
+
+enum UsernameState { idle, validating, validated, failed }
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
+  final VChatApi _vChatApi = VChatApi();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController otpController = TextEditingController();
-  String pictureUrl = "";
+
+  String _pictureUrl = "";
   AuthCredential? _authCredential;
   String _errorMsg = "";
   String _verificationId = "";
   bool _isEnterPhoneLoading = false;
+  bool _isProfileSetupLoading = false;
   String _smsOTP = "";
-  int? _forceResend;
   int _curPage = 0;
   String _chosenImg = "";
+  UsernameState _usernameState = UsernameState.idle;
 
-  // getters
+  // Getters:
   AuthCredential? get authCredential => _authCredential;
   String get errorMsg => _errorMsg;
   String get verficationId => _verificationId;
   bool get isEnterPhoneLoading => _isEnterPhoneLoading;
+  bool get isProfileSetupLoading => _isProfileSetupLoading;
   String get smsOTP => _smsOTP;
-  int? get forceRend => _forceResend;
   int get curPage => _curPage;
   String get chosenImg => _chosenImg;
+  UsernameState get usernameState => _usernameState;
 
+  // Empty constructor
+  AuthProvider();
 
+  // Setters:
   // set profile image
   void setProfileImage(String image) {
     _chosenImg = image;
@@ -44,6 +54,20 @@ class AuthProvider extends ChangeNotifier {
   //  set EnterPhoneLoading
   void setEnterPhoneLoading(bool val) {
     _isEnterPhoneLoading = val;
+    notifyListeners();
+  }
+
+  void setUsernameState(UsernameState state) {
+    _usernameState = state;
+    notifyListeners();
+  }
+
+  // Methods:
+  // method to validateUserName
+  Future<void> validateUserName() async {
+    final username = userNameController.text.trim().toLowerCase();
+    final fetchedState = await _vChatApi.validateUserName(username);
+    _usernameState = fetchedState;
     notifyListeners();
   }
 
@@ -64,6 +88,18 @@ class AuthProvider extends ChangeNotifier {
     await _auth.signInWithPhoneNumber(phoneNo);
   }
 
+  Future<void> signUp(BuildContext context) async {
+    if (_authCredential == null) {
+      try {
+        await _auth.signInWithCredential(_authCredential!);
+      } catch (err) {
+        _showSnack(context, "Something went Wrong!");
+      }
+    } else {
+      _showSnack(context, "Something went Wrong!");
+    }
+  }
+
   // method to createPhoneAuthCredential
   void createPhoneAuthCredential(BuildContext context, String smsCode) {
     final credential = PhoneAuthProvider.credential(
@@ -82,9 +118,8 @@ class AuthProvider extends ChangeNotifier {
       {required BuildContext context, required String number}) async {
     // ignore: prefer_function_declarations_over_variables
     final PhoneCodeSent smsOTPSent = (String verId, int? forceCodeResend) {
-      print("OTP IS SENT =>");
+      print("OTP IS SENT");
       _verificationId = verId;
-      _forceResend = forceCodeResend;
       _isEnterPhoneLoading = false;
       _curPage = 2;
       notifyListeners();
@@ -103,7 +138,7 @@ class AuthProvider extends ChangeNotifier {
           _isEnterPhoneLoading = false;
           _curPage = 3;
           notifyListeners();
-          print("MOVING TO THE PROFILE SETUP PAGE==>");
+          print("MOVING TO THE PROFILE SETUP PAGE");
         },
         verificationFailed: (FirebaseAuthException exception) {
           _showSnack(context, "Verification Failed");
