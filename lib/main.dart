@@ -52,7 +52,7 @@ class MyApp extends StatelessWidget {
               themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
               darkTheme: VStyle.darkTheme(),
               theme: VStyle.lightTheme(),
-              home: _authStateHandler(),
+              home: const _AuthStateHandler(),
             );
           },
         );
@@ -60,17 +60,24 @@ class MyApp extends StatelessWidget {
     );
   }
 
-  Widget _authStateHandler() {
-    return StreamBuilder(
+}
+
+class _AuthStateHandler extends StatelessWidget {
+  const _AuthStateHandler({ Key? key }) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return StreamBuilder<User?>(
       stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (BuildContext context, AsyncSnapshot user) {
+      builder: (BuildContext context, AsyncSnapshot<User?> user) {
         if (user.connectionState == ConnectionState.waiting) {
           const _Splash();
         }
         if (user.hasData) {
           return const Home();
+        }else{
+          return const StartUp();
         }
-        return const ProfileSetup();
       },
     );
   }

@@ -1,6 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
+import 'package:google_sign_in/google_sign_in.dart';
 import 'package:http/http.dart' as http;
 import 'package:vchat/services/vchat_api.dart';
 
@@ -12,25 +13,26 @@ class AuthProvider extends ChangeNotifier {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController otpController = TextEditingController();
+  final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   String _pictureUrl = "";
-  AuthCredential? _authCredential;
+  AuthCredential? _phoneAuthCredential;
+  AuthCredential? _googleAuthCredential;
   String _errorMsg = "";
   String _verificationId = "";
   bool _isEnterPhoneLoading = false;
   bool _isProfileSetupLoading = false;
-  String _smsOTP = "";
   int _curPage = 0;
   String _chosenImg = "";
   UsernameState _usernameState = UsernameState.idle;
 
   // Getters:
-  AuthCredential? get authCredential => _authCredential;
+  AuthCredential? get authCredential => _phoneAuthCredential;
+  AuthCredential? get googleAuthCredential => _googleAuthCredential;
   String get errorMsg => _errorMsg;
   String get verficationId => _verificationId;
   bool get isEnterPhoneLoading => _isEnterPhoneLoading;
   bool get isProfileSetupLoading => _isProfileSetupLoading;
-  String get smsOTP => _smsOTP;
   int get curPage => _curPage;
   String get chosenImg => _chosenImg;
   UsernameState get usernameState => _usernameState;
@@ -71,6 +73,22 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future getStartedWithGoogle({required BuildContext context}) async {
+    try {
+      await _googleSignIn.signOut();
+      final account = await _googleSignIn.signIn();
+      final googleAuth = await account!.authentication;
+      final googleCredential = GoogleAuthProvider.credential(
+          accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
+
+      _googleAuthCredential = googleAuthCredential;
+      _curPage = 1;
+      notifyListeners();
+    } catch (err) {
+      _showSnack(context, "Try Again!");
+    }
+  }
+
   // checking if the phoneNumber is already a verified one or not
   Future getStartedWithPhone(
       {required BuildContext context, required String phoneNo}) async {
@@ -84,32 +102,32 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // signIn method
-  Future<void> signIn(String phoneNo) async {
+  Future<void> signIn({required BuildContext context}) async {
+    final phoneNo = phoneController.text.trim();
     await _auth.signInWithPhoneNumber(phoneNo);
   }
 
   Future<void> signUp(BuildContext context) async {
-    if (_authCredential == null) {
-      try {
-        await _auth.signInWithCredential(_authCredential!);
-      } catch (err) {
-        _showSnack(context, "Something went Wrong!");
-      }
-    } else {
-      _showSnack(context, "Something went Wrong!");
+    try {
+      await Future.wait([
+        _auth.signInWithCredential(_phoneAuthCredential!),
+      ]);
+    } catch (err) {
+      _showSnack(context, "Failed to SignUp");
     }
   }
 
   // method to createPhoneAuthCredential
-  void createPhoneAuthCredential(BuildContext context, String smsCode) {
+  void createPhoneAuthCredential(BuildContext context) {
+    final smsCode = otpController.text.trim();
     final credential = PhoneAuthProvider.credential(
         verificationId: verficationId, smsCode: smsCode);
-    _authCredential = credential;
-    if (_authCredential != null) {
+    _phoneAuthCredential = credential;
+    if (_phoneAuthCredential != null) {
       _curPage = 3;
       notifyListeners();
     } else {
-      _showSnack(context, "Try Again");
+      _showSnack(context, "Wrong OTP");
     }
   }
 
@@ -129,12 +147,12 @@ class AuthProvider extends ChangeNotifier {
       await _auth.verifyPhoneNumber(
         phoneNumber: "+91" + number.trim(), // PHONE NUMBER TO SEND OTP
         codeAutoRetrievalTimeout: (String verId) {
-          print("TIMED OUT !!!" + verId);
+          print("TIMED OUT !" + verId);
         },
         codeSent: smsOTPSent,
         timeout: const Duration(seconds: 40),
         verificationCompleted: (AuthCredential phoneAuthCredential) {
-          _authCredential = phoneAuthCredential;
+          _phoneAuthCredential = phoneAuthCredential;
           _isEnterPhoneLoading = false;
           _curPage = 3;
           notifyListeners();
@@ -167,4 +185,5 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signOut() async {
     await _auth.signOut();
   }
+  
 }

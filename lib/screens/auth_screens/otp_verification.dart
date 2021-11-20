@@ -65,7 +65,7 @@ class OtpVerification extends ConsumerWidget {
                 callback: () {
                   final smsCode = otpController.text.trim();
                   if (smsCode.isNotEmpty && smsCode.length == 6) {
-                    authPro.createPhoneAuthCredential(context, smsCode);
+                    authPro.createPhoneAuthCredential(context);
                   } else {
                     _showSnack(context: context, message: "Enter a valid OTP");
                   }

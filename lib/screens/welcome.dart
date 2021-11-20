@@ -10,7 +10,7 @@ class Welcome extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final _authPro = ref.read(authProvider);
+    final authPro = ref.read(authProvider);
     return Scaffold(
       body: Stack(
         children: [
@@ -27,8 +27,8 @@ class Welcome extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 CustomButton(
-                  callback: () {
-                    _authPro.moveToPage(1);
+                  callback: () async {
+                    await authPro.getStartedWithGoogle(context: context);
                   },
                   width: 80.w,
                   name: 'Get Started',
