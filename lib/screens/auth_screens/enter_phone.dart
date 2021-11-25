@@ -59,10 +59,10 @@ class EnterPhone extends ConsumerWidget {
                   return CustomButton(
                     callback: () {
                       final phoneNo = phoneController.text.trim();
-                      if (phoneNo.isNotEmpty && phoneNo.length == 10) {
+                      if (phoneNo.length == 10) {
                         authPro.setEnterPhoneLoading(true);
                         authPro.getStartedWithPhone(
-                            context: context, phoneNo: phoneNo);
+                            context: context);
                       } else {
                         _showSnack(
                             context: context, message: "Enter a Valid Number");

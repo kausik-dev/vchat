@@ -1,4 +1,3 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
@@ -7,9 +6,8 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:sizer/sizer.dart';
 import 'package:vchat/providers/auth_provider.dart';
 import 'package:vchat/providers/theme_provider.dart';
-import 'package:vchat/screens/auth_screens/profile_setup.dart';
 import 'package:vchat/screens/home/home.dart';
-import 'package:vchat/screens/startup.dart';
+import 'package:vchat/screens/get_started.dart';
 import 'package:vchat/styles/styles.dart';
 
 // Author : Kausik at 2.44am Nov 19, 2021
@@ -23,8 +21,13 @@ void main() async {
   final sharedPref = await SharedPreferences.getInstance();
   final isDark = sharedPref.getBool(themeId);
 
+  // Try to get the existing signed user data
+  const userDbId = "s_userid";
+  final curUserId = sharedPref.getString(userDbId);
+
   // Initialise the ThemeProvider
   ThemeProvider.init(isDark);
+  AuthProvider.init(curUserId);
 
   runApp(
     const ProviderScope(
@@ -52,46 +55,33 @@ class MyApp extends StatelessWidget {
               themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
               darkTheme: VStyle.darkTheme(),
               theme: VStyle.lightTheme(),
-              home: const _AuthStateHandler(),
+              home: Consumer(
+                builder: (context, ref, _) {
+                  final userId = ref.watch(authProvider).curUserId;
+                  if (userId == null) {
+                    return const GetStartedPage();
+                  } else {
+                    return const Home();
+                  }
+                },
+              ),
             );
           },
         );
       },
     );
   }
-
 }
 
-class _AuthStateHandler extends StatelessWidget {
-  const _AuthStateHandler({ Key? key }) : super(key: key);
+// class _Splash extends StatelessWidget {
+//   const _Splash({Key? key}) : super(key: key);
 
-  @override
-  Widget build(BuildContext context) {
-    return StreamBuilder<User?>(
-      stream: FirebaseAuth.instance.authStateChanges(),
-      builder: (BuildContext context, AsyncSnapshot<User?> user) {
-        if (user.connectionState == ConnectionState.waiting) {
-          const _Splash();
-        }
-        if (user.hasData) {
-          return const Home();
-        }else{
-          return const StartUp();
-        }
-      },
-    );
-  }
-}
-
-class _Splash extends StatelessWidget {
-  const _Splash({Key? key}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(                    
-        child: CupertinoActivityIndicator(radius: 20),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return const Scaffold(
+//       body: Center(
+//         child: CupertinoActivityIndicator(radius: 20),
+//       ),
+//     );
+//   }
+// }

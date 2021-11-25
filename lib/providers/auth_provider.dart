@@ -2,20 +2,20 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
-import 'package:http/http.dart' as http;
+import 'package:vchat/screens/auth_screens/profile_setup.dart';
 import 'package:vchat/services/vchat_api.dart';
 
 enum UsernameState { idle, validating, validated, failed }
+enum AuthenticationState { init, success, unAuthenticated, failed }
 
 class AuthProvider extends ChangeNotifier {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-  final VChatApi _vChatApi = VChatApi();
+  final VChatApi _vChatApi = const VChatApi();
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController otpController = TextEditingController();
   final GoogleSignIn _googleSignIn = GoogleSignIn();
 
-  String _pictureUrl = "";
   AuthCredential? _phoneAuthCredential;
   AuthCredential? _googleAuthCredential;
   String _errorMsg = "";
@@ -25,6 +25,8 @@ class AuthProvider extends ChangeNotifier {
   int _curPage = 0;
   String _chosenImg = "";
   UsernameState _usernameState = UsernameState.idle;
+  AuthenticationState _authenticationState = AuthenticationState.init;
+  static String? _curUserId;
 
   // Getters:
   AuthCredential? get authCredential => _phoneAuthCredential;
@@ -36,6 +38,8 @@ class AuthProvider extends ChangeNotifier {
   int get curPage => _curPage;
   String get chosenImg => _chosenImg;
   UsernameState get usernameState => _usernameState;
+  AuthenticationState get authenticationState => _authenticationState;
+  String? get curUserId => _curUserId;
 
   // Empty constructor
   AuthProvider();
@@ -59,12 +63,31 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // set UsernameState
   void setUsernameState(UsernameState state) {
     _usernameState = state;
     notifyListeners();
   }
 
+  // set AuthenticationState
+  void setAuthState(AuthenticationState state) {
+    _authenticationState = state;
+    notifyListeners();
+  }
+
+  // set ProfileSetupLoading
+  set profileSetupLoading(bool status) {
+    _isProfileSetupLoading = status;
+    notifyListeners();
+  }
+
   // Methods:
+
+  // init method
+  static void init(String? userId) {
+    _curUserId = _curUserId;
+  }
+
   // method to validateUserName
   Future<void> validateUserName() async {
     final username = userNameController.text.trim().toLowerCase();
@@ -73,25 +96,33 @@ class AuthProvider extends ChangeNotifier {
     notifyListeners();
   }
 
+  // method to signUp with google
   Future getStartedWithGoogle({required BuildContext context}) async {
+    
     try {
       await _googleSignIn.signOut();
       final account = await _googleSignIn.signIn();
       final googleAuth = await account!.authentication;
-      final googleCredential = GoogleAuthProvider.credential(
+      final credential = GoogleAuthProvider.credential(
           accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
 
-      _googleAuthCredential = googleAuthCredential;
-      _curPage = 1;
+      _googleAuthCredential = credential;
       notifyListeners();
+      Navigator.of(context).pushReplacement(
+        MaterialPageRoute(
+          builder: (context) {
+            return const ProfileSetup();
+          },
+        ),
+      );
     } catch (err) {
       _showSnack(context, "Try Again!");
     }
   }
 
-  // checking if the phoneNumber is already a verified one or not
-  Future getStartedWithPhone(
-      {required BuildContext context, required String phoneNo}) async {
+  // checking if the phoneNumber is already a verified
+  Future getStartedWithPhone({required BuildContext context}) async {
+    final phoneNo = phoneController.text.trim();
     try {
       // trying to signIn with the phoneNumber
       await _auth.signInWithPhoneNumber(phoneNo);
@@ -110,7 +141,7 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signUp(BuildContext context) async {
     try {
       await Future.wait([
-        _auth.signInWithCredential(_phoneAuthCredential!),
+        _auth.signInWithCredential(_googleAuthCredential!),
       ]);
     } catch (err) {
       _showSnack(context, "Failed to SignUp");
@@ -118,16 +149,16 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // method to createPhoneAuthCredential
-  void createPhoneAuthCredential(BuildContext context) {
+  Future<void> createPhoneAuthCredential(BuildContext context) async {
     final smsCode = otpController.text.trim();
     final credential = PhoneAuthProvider.credential(
         verificationId: verficationId, smsCode: smsCode);
-    _phoneAuthCredential = credential;
-    if (_phoneAuthCredential != null) {
+    try {
+      final phoneAuth = await _auth.signInWithCredential(credential);
       _curPage = 3;
       notifyListeners();
-    } else {
-      _showSnack(context, "Wrong OTP");
+    } catch (err) {
+      notifyListeners();
     }
   }
 
@@ -151,8 +182,8 @@ class AuthProvider extends ChangeNotifier {
         },
         codeSent: smsOTPSent,
         timeout: const Duration(seconds: 40),
-        verificationCompleted: (AuthCredential phoneAuthCredential) {
-          _phoneAuthCredential = phoneAuthCredential;
+        verificationCompleted: (AuthCredential phoneAuthCredential) async {
+          await _auth.signInWithCredential(phoneAuthCredential);
           _isEnterPhoneLoading = false;
           _curPage = 3;
           notifyListeners();
@@ -185,5 +216,4 @@ class AuthProvider extends ChangeNotifier {
   Future<void> signOut() async {
     await _auth.signOut();
   }
-  
 }

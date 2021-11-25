@@ -1,10 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:vchat/main.dart';
-import 'package:vchat/screens/auth_screens/enter_phone.dart';
-import 'package:vchat/screens/auth_screens/otp_verification.dart';
 import 'package:vchat/screens/auth_screens/profile_setup.dart';
-import 'package:vchat/screens/welcome.dart';
+import 'package:vchat/screens/get_started.dart';
 
 class StartUp extends ConsumerWidget {
   const StartUp({Key? key}) : super(key: key);
@@ -13,9 +11,9 @@ class StartUp extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final authPro = ref.read(authProvider);
     final pages = [
-      const Welcome(),
-      const EnterPhone(),
-      OtpVerification(),
+      const GetStartedPage(),
+      // const EnterPhone(),
+      // OtpVerification(),
       const ProfileSetup(),
     ];
 
@@ -26,11 +24,6 @@ class StartUp extends ConsumerWidget {
           return false;
         } else if (curIndex == 1) {
           authPro.moveToPage(0);
-          return false;
-        } else if (curIndex == 2) {
-          // authPro.moveToPage(1);
-          return false;
-        } else if (curIndex == 3) {
           return false;
         }
         return false;

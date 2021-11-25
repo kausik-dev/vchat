@@ -1,7 +1,7 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import 'dart:io';
 import 'package:sizer/sizer.dart';
 import 'package:vchat/main.dart';
@@ -29,9 +29,10 @@ class ProfileSetup extends ConsumerWidget {
       ),
       body: Center(
         child: Column(
+          mainAxisSize: MainAxisSize.max,
           children: [
-            SizedBox(height: 10.h),
-            const _ProfileAvatarPicker(image: ""),
+            SizedBox(height: 10.h,),
+            _ProfileAvatarPicker(authPro: authPro),
             SizedBox(height: 3.h),
             Container(
               margin: const EdgeInsets.symmetric(horizontal: 10.0),
@@ -84,18 +85,35 @@ class ProfileSetup extends ConsumerWidget {
   }
 }
 
-class _ProfileAvatarPicker extends StatelessWidget {
-  const _ProfileAvatarPicker({Key? key, required this.image}) : super(key: key);
+class _ProfileAvatarPicker extends ConsumerWidget {
+  const _ProfileAvatarPicker({Key? key, required this.authPro})
+      : super(key: key);
 
-  final String image;
+  final AuthProvider authPro;
 
   @override
-  Widget build(BuildContext context) {
-    return CircleAvatar(
-      // backgroundImage: FileImage(File(image)),
-      backgroundColor: VStyle.darkgrey,
-      radius: 65,
+  Widget build(BuildContext context, WidgetRef ref) {
+    return GestureDetector(
+      onTap: () => pickImage(),
+      child: Consumer(builder: (_, authPro, child) {
+        final imagePath = authPro.watch(authProvider).chosenImg;
+        return CircleAvatar(
+          backgroundImage: imagePath != '' ? FileImage(File(imagePath)) : null,
+          backgroundColor: VStyle.darkgrey,
+          radius: 65,
+        );
+      }),
     );
+  }
+
+  void pickImage() async {
+    print("TAP WORKS");
+    final imagePicker = ImagePicker();
+    final image = await imagePicker.pickImage(source: ImageSource.gallery);
+
+    if (image != null) {
+      authPro.setProfileImage(image.path);
+    }
   }
 }
 
