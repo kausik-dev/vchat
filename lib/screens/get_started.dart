@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_svg/svg.dart';
 import 'package:sizer/sizer.dart';
 import 'package:vchat/main.dart';
+import 'package:vchat/screens/auth_screens/enter_phone.dart';
 import 'package:vchat/widgets/custom_button.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -29,13 +30,17 @@ class GetStartedPage extends ConsumerWidget {
               mainAxisAlignment: MainAxisAlignment.end,
               children: [
                 CustomButton(
-                  callback: () async {
-                    await authPro.getStartedWithGoogle(context: context);
+                  callback: () {
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => const EnterPhone(),
+                      ),
+                    );
                   },
                   width: 80.w,
                   name: 'Get Started',
                 ),
-                SizedBox(height: 10.h)
+                SizedBox(height: 6.h)
               ],
             ),
           )

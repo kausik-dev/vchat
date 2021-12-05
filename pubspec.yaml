@@ -1,5 +1,5 @@
 name: vchat
-description: A new Flutter project.
+description: Advanced Chat App.
 
 publish_to: 'none'
 version: 1.0.0+1
@@ -32,6 +32,13 @@ dependencies:
   #other
   google_sign_in: ^5.2.1
   image_picker: ^0.8.4+4
+  googleapis: ^7.0.0
+  googleapis_auth: ^1.3.0
+  http: ^0.13.4
+  path_provider: ^2.0.7
+  url_launcher: ^6.0.15
+  flutter_secure_storage: ^5.0.2
+
 
 dev_dependencies:
   flutter_test:

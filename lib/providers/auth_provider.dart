@@ -14,11 +14,10 @@ class AuthProvider extends ChangeNotifier {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController otpController = TextEditingController();
-  final GoogleSignIn _googleSignIn = GoogleSignIn();
+  // final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   AuthCredential? _phoneAuthCredential;
-  AuthCredential? _googleAuthCredential;
-  String _errorMsg = "";
+  // GoogleSignInAccount? _googleSignInAccount;
   String _verificationId = "";
   bool _isEnterPhoneLoading = false;
   bool _isProfileSetupLoading = false;
@@ -30,8 +29,7 @@ class AuthProvider extends ChangeNotifier {
 
   // Getters:
   AuthCredential? get authCredential => _phoneAuthCredential;
-  AuthCredential? get googleAuthCredential => _googleAuthCredential;
-  String get errorMsg => _errorMsg;
+  // GoogleSignInAccount? get googleAccount => _googleSignInAccount;
   String get verficationId => _verificationId;
   bool get isEnterPhoneLoading => _isEnterPhoneLoading;
   bool get isProfileSetupLoading => _isProfileSetupLoading;
@@ -82,7 +80,6 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // Methods:
-
   // init method
   static void init(String? userId) {
     _curUserId = _curUserId;
@@ -94,30 +91,6 @@ class AuthProvider extends ChangeNotifier {
     final fetchedState = await _vChatApi.validateUserName(username);
     _usernameState = fetchedState;
     notifyListeners();
-  }
-
-  // method to signUp with google
-  Future getStartedWithGoogle({required BuildContext context}) async {
-    
-    try {
-      await _googleSignIn.signOut();
-      final account = await _googleSignIn.signIn();
-      final googleAuth = await account!.authentication;
-      final credential = GoogleAuthProvider.credential(
-          accessToken: googleAuth.accessToken, idToken: googleAuth.idToken);
-
-      _googleAuthCredential = credential;
-      notifyListeners();
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(
-          builder: (context) {
-            return const ProfileSetup();
-          },
-        ),
-      );
-    } catch (err) {
-      _showSnack(context, "Try Again!");
-    }
   }
 
   // checking if the phoneNumber is already a verified
@@ -139,13 +112,7 @@ class AuthProvider extends ChangeNotifier {
   }
 
   Future<void> signUp(BuildContext context) async {
-    try {
-      await Future.wait([
-        _auth.signInWithCredential(_googleAuthCredential!),
-      ]);
-    } catch (err) {
-      _showSnack(context, "Failed to SignUp");
-    }
+    // TODO : TO BE IMPLEMENTED
   }
 
   // method to createPhoneAuthCredential
@@ -163,8 +130,9 @@ class AuthProvider extends ChangeNotifier {
   }
 
   // method to verify the phoneNumber
-  Future<void> verifyPhoneNumber(
-      {required BuildContext context, required String number}) async {
+  Future<void> verifyPhoneNumber({required BuildContext context, required String number}) async {
+    
+    final phoneNo = phoneController.text.trim();
     // ignore: prefer_function_declarations_over_variables
     final PhoneCodeSent smsOTPSent = (String verId, int? forceCodeResend) {
       print("OTP IS SENT");
@@ -176,9 +144,9 @@ class AuthProvider extends ChangeNotifier {
 
     try {
       await _auth.verifyPhoneNumber(
-        phoneNumber: "+91" + number.trim(), // PHONE NUMBER TO SEND OTP
+        phoneNumber: "+91"+phoneNo,
         codeAutoRetrievalTimeout: (String verId) {
-          print("TIMED OUT !" + verId);
+          print("TIMED OUT !" + verId);65
         },
         codeSent: smsOTPSent,
         timeout: const Duration(seconds: 40),
@@ -196,7 +164,6 @@ class AuthProvider extends ChangeNotifier {
         },
       );
     } catch (e) {
-      _errorMsg = e.toString();
       _isEnterPhoneLoading = false;
       notifyListeners();
       _showSnack(context, "Verification Failed");

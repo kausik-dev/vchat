@@ -8,8 +8,8 @@ class VStyle {
   static const white = Color(0xffFFFFFF);
   static const lightGrey = Color(0xffF2F2F2);
 
-  static ThemeData darkTheme() {
-    return ThemeData(
+
+  static ThemeData darkTheme = ThemeData(
       appBarTheme: const AppBarTheme(backgroundColor: darkgrey, elevation: 1),
       backgroundColor: darkBlack,
       scaffoldBackgroundColor: darkBlack,
@@ -18,12 +18,10 @@ class VStyle {
         headline1: GoogleFonts.inter(fontSize: 16, color: white),
       ),
       iconTheme: const IconThemeData(color: white),
-      canvasColor: darkgrey
+      canvasColor: darkgrey,
     );
-  }
 
-  static ThemeData lightTheme() {
-    return ThemeData(
+  static ThemeData lightTheme = ThemeData(
       appBarTheme:
           const AppBarTheme(backgroundColor: Colors.white, elevation: 1),
       backgroundColor: white,
@@ -35,7 +33,6 @@ class VStyle {
       iconTheme: const IconThemeData(color: darkBlack),
       canvasColor: lightGrey
     );
-  }
 
    
 }

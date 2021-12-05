@@ -14,7 +14,8 @@ class EnterPhone extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final isAndroid = Platform.isAndroid;
-    final phoneController = TextEditingController();
+    final authPro = ref.read(authProvider);
+    final phoneController = authPro.phoneController;
 
     return Scaffold(
       body: SafeArea(
@@ -44,12 +45,13 @@ class EnterPhone extends ConsumerWidget {
                       ? Theme.of(context).textTheme.headline1!.copyWith(
                           fontSize: 12.sp, fontWeight: FontWeight.w500)
                       : null),
-              SizedBox(height: 3.h),
+              SizedBox(height: 5.h),
               Padding(
                 padding: const EdgeInsets.symmetric(
                     vertical: 20.0, horizontal: 10.0),
                 child: _PhoneField(controller: phoneController),
               ),
+              SizedBox(height: 3.h),
               Consumer(
                 builder: (context, ref, child) {
                   final authPro = ref.watch(authProvider);
@@ -61,8 +63,7 @@ class EnterPhone extends ConsumerWidget {
                       final phoneNo = phoneController.text.trim();
                       if (phoneNo.length == 10) {
                         authPro.setEnterPhoneLoading(true);
-                        authPro.getStartedWithPhone(
-                            context: context);
+                        authPro.getStartedWithPhone(context: context);
                       } else {
                         _showSnack(
                             context: context, message: "Enter a Valid Number");
@@ -111,11 +112,13 @@ class _PhoneField extends StatelessWidget {
         fillColor: Theme.of(context).canvasColor,
         filled: true,
         enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: const BorderSide(color: Colors.transparent)),
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: const BorderSide(color: Colors.transparent),
+        ),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(10.0),
-            borderSide: const BorderSide(color: Colors.transparent)),
+          borderRadius: BorderRadius.circular(10.0),
+          borderSide: const BorderSide(color: Colors.transparent),
+        ),
       ),
     );
   }

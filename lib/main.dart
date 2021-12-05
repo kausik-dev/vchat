@@ -10,7 +10,7 @@ import 'package:vchat/screens/home/home.dart';
 import 'package:vchat/screens/get_started.dart';
 import 'package:vchat/styles/styles.dart';
 
-// Author : Kausik at 2.44am Nov 19, 2021
+// Author : Kausik
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -53,15 +53,15 @@ class MyApp extends StatelessWidget {
             return MaterialApp(
               debugShowCheckedModeBanner: false,
               themeMode: isDark ? ThemeMode.dark : ThemeMode.light,
-              darkTheme: VStyle.darkTheme(),
-              theme: VStyle.lightTheme(),
+              darkTheme: VStyle.darkTheme,
+              theme: VStyle.lightTheme,
               home: Consumer(
                 builder: (context, ref, _) {
                   final userId = ref.watch(authProvider).curUserId;
-                  if (userId == null) {
-                    return const GetStartedPage();
-                  } else {
+                  if (userId != null) {
                     return const Home();
+                  } else {
+                    return const GetStartedPage();
                   }
                 },
               ),
@@ -72,16 +72,3 @@ class MyApp extends StatelessWidget {
     );
   }
 }
-
-// class _Splash extends StatelessWidget {
-//   const _Splash({Key? key}) : super(key: key);
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return const Scaffold(
-//       body: Center(
-//         child: CupertinoActivityIndicator(radius: 20),
-//       ),
-//     );
-//   }
-// }

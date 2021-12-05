@@ -31,7 +31,9 @@ class ProfileSetup extends ConsumerWidget {
         child: Column(
           mainAxisSize: MainAxisSize.max,
           children: [
-            SizedBox(height: 10.h,),
+            SizedBox(
+              height: 10.h,
+            ),
             _ProfileAvatarPicker(authPro: authPro),
             SizedBox(height: 3.h),
             Container(
@@ -69,14 +71,23 @@ class ProfileSetup extends ConsumerWidget {
             ),
             // const Spacer(),
             SizedBox(height: 3.h),
-            CustomButton(
-                callback: () async {
-                  if (authPro.usernameState == UsernameState.validated) {
-                    authPro.signUp(context);
-                  }
-                },
-                width: 80.w,
-                name: "Done"),
+            Consumer(
+              builder: (_, ref, child) {
+                final isLoading = ref.watch(authProvider).isProfileSetupLoading;
+                return isLoading
+                    ? const CupertinoActivityIndicator()
+                    : CustomButton(
+                        callback: () async {
+                          if (authPro.usernameState ==
+                                  UsernameState.validated &&
+                              authPro.chosenImg.isNotEmpty) {
+                            await authPro.signIn(context: context);
+                          }
+                        },
+                        width: 80.w,
+                        name: "Done");
+              },
+            ),
             SizedBox(height: 3.h),
           ],
         ),
