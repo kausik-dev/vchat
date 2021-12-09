@@ -106,14 +106,17 @@ class _ProfileAvatarPicker extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     return GestureDetector(
       onTap: () => pickImage(),
-      child: Consumer(builder: (_, authPro, child) {
-        final imagePath = authPro.watch(authProvider).chosenImg;
-        return CircleAvatar(
-          backgroundImage: imagePath != '' ? FileImage(File(imagePath)) : null,
-          backgroundColor: VStyle.darkgrey,
-          radius: 65,
-        );
-      }),
+      child: Consumer(
+        builder: (_, authPro, child) {
+          final imagePath = authPro.watch(authProvider).chosenImg;
+          return CircleAvatar(
+            backgroundImage:
+                imagePath != '' ? FileImage(File(imagePath)) : null,
+            backgroundColor: VStyle.darkgrey,
+            radius: 65,
+          );
+        },
+       ),
     );
   }
 

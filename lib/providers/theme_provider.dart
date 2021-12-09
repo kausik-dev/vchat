@@ -7,13 +7,13 @@ class ThemeProvider extends ChangeNotifier {
   
   // getters
   bool get isDark => _isDark;
-
   ThemeProvider();
 
   static void init(bool? darkMode) {
     _isDark = darkMode ?? true;
   }
-
+  
+  // Toggle dark mode
   Future<void> toggleDarkMode() async {
     _isDark = !_isDark;
     final sharedPref = await SharedPreferences.getInstance();

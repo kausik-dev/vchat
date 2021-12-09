@@ -2,6 +2,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:vchat/screens/auth_screens/otp_verification.dart';
 import 'package:vchat/screens/auth_screens/profile_setup.dart';
 import 'package:vchat/services/vchat_api.dart';
 
@@ -14,10 +15,8 @@ class AuthProvider extends ChangeNotifier {
   final TextEditingController phoneController = TextEditingController();
   final TextEditingController userNameController = TextEditingController();
   final TextEditingController otpController = TextEditingController();
-  // final GoogleSignIn _googleSignIn = GoogleSignIn();
 
   AuthCredential? _phoneAuthCredential;
-  // GoogleSignInAccount? _googleSignInAccount;
   String _verificationId = "";
   bool _isEnterPhoneLoading = false;
   bool _isProfileSetupLoading = false;
@@ -29,7 +28,6 @@ class AuthProvider extends ChangeNotifier {
 
   // Getters:
   AuthCredential? get authCredential => _phoneAuthCredential;
-  // GoogleSignInAccount? get googleAccount => _googleSignInAccount;
   String get verficationId => _verificationId;
   bool get isEnterPhoneLoading => _isEnterPhoneLoading;
   bool get isProfileSetupLoading => _isProfileSetupLoading;
@@ -101,7 +99,12 @@ class AuthProvider extends ChangeNotifier {
       await _auth.signInWithPhoneNumber(phoneNo);
       setEnterPhoneLoading(false);
     } catch (err) {
-      await verifyPhoneNumber(context: context, number: phoneNo);
+      setEnterPhoneLoading(false);
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const OtpVerification(),
+        ),
+      );
     }
   }
 
@@ -111,9 +114,7 @@ class AuthProvider extends ChangeNotifier {
     await _auth.signInWithPhoneNumber(phoneNo);
   }
 
-  Future<void> signUp(BuildContext context) async {
-    // TODO : TO BE IMPLEMENTED
-  }
+  Future<void> signUp(BuildContext context) async {}
 
   // method to createPhoneAuthCredential
   Future<void> createPhoneAuthCredential(BuildContext context) async {
@@ -121,41 +122,87 @@ class AuthProvider extends ChangeNotifier {
     final credential = PhoneAuthProvider.credential(
         verificationId: verficationId, smsCode: smsCode);
     try {
-      final phoneAuth = await _auth.signInWithCredential(credential);
-      _curPage = 3;
+      //  Signing in with the created phoneCredentials
+      await _auth.signInWithCredential(credential);
       notifyListeners();
     } catch (err) {
       notifyListeners();
     }
   }
 
+  Future<void> resendVerification({required BuildContext context}) async {
+    final phoneNo = phoneController.text.trim();
+    // ignore: prefer_function_declarations_over_variables
+    final PhoneCodeSent smsOTPSent = (String verId, int? forceCodeResend) {
+      print("OTP IS RESENT");
+      _verificationId = verId;
+      _isEnterPhoneLoading = false;
+      notifyListeners();
+      _showSnack(context, "OTP resent successfully");
+    };
+
+    try {
+      await _auth.verifyPhoneNumber(
+        phoneNumber: "+91" + phoneNo,
+        codeAutoRetrievalTimeout: (String verId) {
+          print("TIMED OUT !" + verId);
+        },
+        codeSent: smsOTPSent,
+        timeout: const Duration(seconds: 40),
+        verificationCompleted: (AuthCredential phoneAuthCredential) async {
+          await _auth.signInWithCredential(phoneAuthCredential);
+          notifyListeners();
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const ProfileSetup(),
+            ),
+          );
+        },
+        verificationFailed: (FirebaseAuthException exception) {
+          _showSnack(context, "Verification Failed");
+          print('VERIFICATION FAILED ==> ${exception.message}');
+          setEnterPhoneLoading(false);
+        },
+      );
+    } catch (e) {
+      _isEnterPhoneLoading = false;
+      notifyListeners();
+      _showSnack(context, "Verification Failed");
+    }
+  }
+
   // method to verify the phoneNumber
-  Future<void> verifyPhoneNumber({required BuildContext context, required String number}) async {
-    
+  Future<void> verifyPhoneNumber({required BuildContext context}) async {
     final phoneNo = phoneController.text.trim();
     // ignore: prefer_function_declarations_over_variables
     final PhoneCodeSent smsOTPSent = (String verId, int? forceCodeResend) {
       print("OTP IS SENT");
       _verificationId = verId;
       _isEnterPhoneLoading = false;
-      _curPage = 2;
       notifyListeners();
+      Navigator.of(context).push(
+        MaterialPageRoute(
+          builder: (_) => const OtpVerification(),
+        ),
+      );
     };
 
     try {
       await _auth.verifyPhoneNumber(
-        phoneNumber: "+91"+phoneNo,
+        phoneNumber: "+91" + phoneNo,
         codeAutoRetrievalTimeout: (String verId) {
-          print("TIMED OUT !" + verId);65
+          print("TIMED OUT !" + verId);
         },
         codeSent: smsOTPSent,
         timeout: const Duration(seconds: 40),
         verificationCompleted: (AuthCredential phoneAuthCredential) async {
           await _auth.signInWithCredential(phoneAuthCredential);
-          _isEnterPhoneLoading = false;
-          _curPage = 3;
           notifyListeners();
-          print("MOVING TO THE PROFILE SETUP PAGE");
+          Navigator.of(context).push(
+            MaterialPageRoute(
+              builder: (_) => const OtpVerification(),
+            ),
+          );
         },
         verificationFailed: (FirebaseAuthException exception) {
           _showSnack(context, "Verification Failed");
