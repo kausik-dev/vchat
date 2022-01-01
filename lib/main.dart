@@ -1,5 +1,4 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -10,7 +9,7 @@ import 'package:vchat/screens/home/home.dart';
 import 'package:vchat/screens/get_started.dart';
 import 'package:vchat/styles/styles.dart';
 
-// Author : Kausik
+// Author : Kausik MR
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
